@@ -16,8 +16,10 @@ const express_1 = __importDefault(require("express"));
 const user_1 = __importDefault(require("./routes/user"));
 const login_1 = __importDefault(require("./routes/login"));
 const tweet_1 = __importDefault(require("./routes/tweet"));
+const tweet_2 = __importDefault(require("./routes/tweet"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
-const port = 3000;
+const cors_1 = __importDefault(require("cors"));
+const port = 3001;
 const app = (0, express_1.default)();
 app.set('view engine', 'hbs');
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -25,6 +27,7 @@ app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
+app.use((0, cors_1.default)());
 app.set("view engine", "hbs");
 app.get("/", (req, res) => {
     res.render("home");
@@ -33,6 +36,7 @@ app.get("/", (req, res) => {
 app.use("/user", user_1.default);
 app.use("/twitt", tweet_1.default);
 app.use("/login", login_1.default);
+app.use("/like", tweet_2.default);
 app.listen(port, () => {
     console.log(`https://localhost:${port}`);
 });

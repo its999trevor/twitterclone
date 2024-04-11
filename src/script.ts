@@ -4,15 +4,16 @@ import loginRoute from "./routes/login";
 import twittRoute from "./routes/tweet";
 import likeRoute from "./routes/tweet";
 import cookieParser from "cookie-parser";
-const port=3000;
+import cors from "cors";
+const port=3001;
 const app=express();
 app.set('view engine','hbs');
 app.get("/",async (req,res) => {
     res.render('home');
 })
-
 app.use(cookieParser());
 app.use(express.json());
+app.use(cors());
 app.set("view engine","hbs");
 app.get("/",(req,res)=>{
      res.render("home");

@@ -17,48 +17,46 @@ const client_1 = require("@prisma/client");
 const auth_1 = require("../utils/auth");
 const prisma = new client_1.PrismaClient();
 const router = express_1.default.Router();
-router.post("/", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { title, content } = req.body;
+router.post(":/", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
     const userid = req.user.id;
-    let result = yield prisma.tweet.create({
+    let like = yield prisma.like.findFirst({
+        where: {
+            tweetid: Number(id),
+            userid: userid
+        }
+    });
+    if (like != null) {
+        yield prisma.like.delete({
+            where: {
+                id: like.id
+            }
+        });
+        yield prisma.tweet.update({
+            where: {
+                id: Number(id)
+            },
+            data: {
+                likecount: { decrement: 1 }
+            }
+        });
+        return res.send("disliked");
+    }
+    yield prisma.like.create({
         data: {
-            content,
-            userid
+            tweetid: Number(id),
+            userid: userid
         }
     });
-    console.log(result);
-    res.send({ result: result });
-}));
-router.get("/", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let tweets = yield prisma.tweet.findMany({
-        include: {
-            user: true
-        }
-    });
-    console.log(tweets);
-    res.send(tweets);
-}));
-router.get("/:id", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let id = req.params;
-    let tweets = yield prisma.tweet.findUnique({
+    yield prisma.tweet.update({
         where: {
             id: Number(id)
         },
-        include: {
-            user: true
+        data: {
+            likecount: {
+                increment: 1
+            }
         }
     });
-    console.log(tweets);
-    res.send(tweets);
+    res.send("like added");
 }));
-router.delete("/:id", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let id = req.params;
-    let tweets = yield prisma.tweet.delete({
-        where: {
-            id: Number(id)
-        }
-    });
-    console.log(tweets);
-    res.send(tweets);
-}));
-exports.default = router;
