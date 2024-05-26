@@ -17,19 +17,37 @@ const client_1 = require("@prisma/client");
 const auth_1 = require("../utils/auth");
 const prisma = new client_1.PrismaClient();
 const router = express_1.default.Router();
-router.post(":/", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.params;
-    const userid = req.user.id;
-    let like = yield prisma.like.findFirst({
-        where: {
-            tweetid: Number(id),
-            userid: userid
-        }
-    });
-    if (like != null) {
-        yield prisma.like.delete({
+router.post("/:id", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        // console.log(id);
+        const userid = req.user.id;
+        let like = yield prisma.like.findFirst({
             where: {
-                id: like.id
+                tweetid: Number(id),
+                userid: userid
+            }
+        });
+        if (like != null) {
+            yield prisma.like.delete({
+                where: {
+                    id: like.id
+                }
+            });
+            yield prisma.tweet.update({
+                where: {
+                    id: Number(id)
+                },
+                data: {
+                    likecount: { decrement: 1 }
+                }
+            });
+            return res.send("disliked");
+        }
+        let newlike = yield prisma.like.create({
+            data: {
+                tweetid: Number(id),
+                userid: userid
             }
         });
         yield prisma.tweet.update({
@@ -37,26 +55,49 @@ router.post(":/", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, vo
                 id: Number(id)
             },
             data: {
-                likecount: { decrement: 1 }
+                likecount: {
+                    increment: 1
+                }
             }
         });
-        return res.send("disliked");
+        // res.send(newlike);
+        res.send("liked");
     }
-    yield prisma.like.create({
-        data: {
-            tweetid: Number(id),
-            userid: userid
-        }
-    });
-    yield prisma.tweet.update({
-        where: {
-            id: Number(id)
-        },
-        data: {
-            likecount: {
-                increment: 1
-            }
-        }
-    });
-    res.send("like added");
+    catch (err) {
+        res.send(err);
+    }
 }));
+router.get("/:id", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    let like = yield prisma.like.findMany({
+        where: {
+            tweetid: Number(id)
+        },
+        select: {
+            user: true
+        }
+    });
+    res.send({ like });
+}));
+router.get("/:id/isLiked", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const userid = req.user.id;
+        let like = yield prisma.like.findFirst({
+            where: {
+                tweetid: Number(id),
+                userid: userid
+            }
+        });
+        if (like != null) {
+            return res.json({ isLiked: true });
+        }
+        else {
+            return res.json({ isLiked: false });
+        }
+    }
+    catch (err) {
+        res.status(500).send(err);
+    }
+}));
+exports.default = router;

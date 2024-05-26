@@ -47,6 +47,7 @@ router.post("/:tweetid", auth_1.verifyToken, (req, res) => __awaiter(void 0, voi
 }));
 router.delete("/:tweetid", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { tweetid } = req.params;
+    console.log(tweetid);
     const userid = req.user.id;
     let retweet = yield prisma.retweet.findFirst({
         where: {
@@ -54,10 +55,11 @@ router.delete("/:tweetid", auth_1.verifyToken, (req, res) => __awaiter(void 0, v
             retweetby: userid
         }
     });
-    if (retweet != null) {
+    console.log(retweet);
+    if (retweet) {
         let response = yield prisma.retweet.delete({
             where: {
-                id: Number(tweetid),
+                id: retweet.id,
                 retweetby: userid
             }
         });
@@ -69,8 +71,26 @@ router.delete("/:tweetid", auth_1.verifyToken, (req, res) => __awaiter(void 0, v
                 retweetCount: { decrement: 1 }
             }
         });
-        res.send({ undo: true });
+        return res.send({ undo: true });
     }
-    res.send("retweet does not exist");
+    else {
+        return res.send("retweet does not exist");
+    }
+}));
+router.get("/:tweetid", auth_1.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { tweetid } = req.params;
+    const userid = req.user.id;
+    try {
+        const retweeted = yield prisma.retweet.findFirst({
+            where: {
+                tweetid: Number(tweetid),
+                retweetby: userid
+            }
+        });
+        res.json({ isRetweeted: retweeted != null });
+    }
+    catch (err) {
+        res.status(500).send(err);
+    }
 }));
 exports.default = router;

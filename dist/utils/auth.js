@@ -5,16 +5,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyToken = exports.createJwtToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const secretKey = "ishit";
+const secretKey = "opium";
 const createJwtToken = (user) => {
     return jsonwebtoken_1.default.sign(user, secretKey, { expiresIn: "24h" });
 };
 exports.createJwtToken = createJwtToken;
 const verifyToken = (req, res, next) => {
-    console.log(req.cookies);
-    let token = req.cookies.token;
+    // console.log(req.cookies);
+    let token = req.cookies.AUTH_TOKEN;
     let decode = jsonwebtoken_1.default.verify(token, secretKey);
-    console.log(decode);
+    // console.log(decode);
     if (decode) {
         req.user = decode;
         return next();

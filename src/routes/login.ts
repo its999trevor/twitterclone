@@ -13,18 +13,26 @@ router.post("/",async(req,res)=>{
     }
    })
    if(!user){
-      throw new Error ("Not a valid email");
+      return res.send("Not a valid email");
    }
    if(user.password!=password){
-    throw new Error ("Not a valid password");
+      return res.send("Not a valid password");
    }
 
    let token= createJwtToken(user); 
-   res.cookie("token",token);
-   res.send("logged in");
+   res.cookie("AUTH_TOKEN",token,{
+      path: '/',
+     });
+   res.status(200).send("logged in");
    
 //alltweets and users
 })
+router.post("/logout", async (req, res) => {
+   // Clear the authentication token cookie from the client's browser
+   res.clearCookie("AUTH_TOKEN");
+   res.cookie("AUTH_TOKEN","",{expires:new Date(0)});
+   res.send("logged out");
+});
 
 
 

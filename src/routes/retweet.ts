@@ -34,6 +34,7 @@ router.post("/:tweetid",verifyToken,async(req,res)=>{
 })
 router.delete("/:tweetid",verifyToken,async(req,res)=>{
     const {tweetid} = req.params
+    console.log(tweetid);
     const userid = req.user.id
    let retweet = await prisma.retweet.findFirst({
           where:{
@@ -41,13 +42,15 @@ router.delete("/:tweetid",verifyToken,async(req,res)=>{
             retweetby:userid
           }
    })
-   if(retweet!=null){
+   console.log(retweet);
+   if(retweet){   
     let response=await prisma.retweet.delete({
         where:{
-           id:Number(tweetid),
+           id:retweet.id,
            retweetby:userid
         }
         })
+        
          await prisma.tweet.update({
             where:{
                 id: response.tweetid
@@ -56,14 +59,36 @@ router.delete("/:tweetid",verifyToken,async(req,res)=>{
                 retweetCount:{decrement:1}
             }
         })
-        res.send({undo:true})
+      return  res.send({undo:true})
+    } else{
+
+       return res.send("retweet does not exist");
     }
 
-    res.send("retweet does not exist");
    
  
 
 })
+
+router.get("/:tweetid",verifyToken,async(req,res)=>{
+  const { tweetid } = req.params;
+  const userid = req.user.id;
+
+  try {
+      const retweeted = await prisma.retweet.findFirst({
+          where: {
+              tweetid: Number(tweetid),
+              retweetby: userid
+          }
+      });
+
+      res.json({ isRetweeted: retweeted != null });
+  } catch (err) {
+      res.status(500).send(err);
+  }
+})
+
+
 
 
 export default router

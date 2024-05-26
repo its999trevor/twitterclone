@@ -25,14 +25,22 @@ router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
     });
     if (!user) {
-        throw new Error("Not a valid email");
+        return res.send("Not a valid email");
     }
     if (user.password != password) {
-        throw new Error("Not a valid password");
+        return res.send("Not a valid password");
     }
     let token = (0, auth_1.createJwtToken)(user);
-    res.cookie("token", token);
-    res.send("logged in");
+    res.cookie("AUTH_TOKEN", token, {
+        path: '/',
+    });
+    res.status(200).send("logged in");
     //alltweets and users
+}));
+router.post("/logout", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // Clear the authentication token cookie from the client's browser
+    res.clearCookie("AUTH_TOKEN");
+    res.cookie("AUTH_TOKEN", "", { expires: new Date(0) });
+    res.send("logged out");
 }));
 exports.default = router;
